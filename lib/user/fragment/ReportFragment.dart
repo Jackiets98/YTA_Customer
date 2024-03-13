@@ -361,7 +361,14 @@ class _ReportFragmentState extends State<ReportFragment> {
                                         mediaList.length > 2
                                             ? GestureDetector(
                                           onTap: () {
-                                            // Handle tap
+                                            String imageUrl = driverMediaURL + driverReports[index]['media'];
+                                            _showImageDialog(
+                                              context,
+                                              (jsonDecode(driverReports[index]['media']) as List)
+                                                  .map<String>((media) => driverMediaURL + media)
+                                                  .toList(),
+                                              imageUrl,
+                                            );
                                           },
                                           child: Container(
                                             color: Colors.black54,
