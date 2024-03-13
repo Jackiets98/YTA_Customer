@@ -447,11 +447,6 @@ class _HomeFragmentState extends State<HomeFragment> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Speed: ${shipment['speed']} km/h'),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end, // Align the status text to the right
-                      children: [
                         Text(
                           '${shipment['vehicleStatus']}',
                           style: TextStyle(
@@ -461,7 +456,7 @@ class _HomeFragmentState extends State<HomeFragment> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 8), // Add some space between the status and city
+                    SizedBox(height: 20), // Add some space between the status and city
                     RichText(
                       text: TextSpan(
                         text: 'Location: ',
