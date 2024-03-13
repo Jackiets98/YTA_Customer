@@ -108,117 +108,120 @@ class _HomeFragmentState extends State<HomeFragment> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFE9E9E9),
-      body: Container(
-        color: Color(0xFFE9E9E9),
-        child: SingleChildScrollView(
-          child: StreamBuilder<List<dynamic>>(
-            stream: shipmentStream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height / 3,),
-                    Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ],
-                );
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Text('Error: ${snapshot.error}'),
-                );
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(
-                  child: Text('Currently No Orders', style: TextStyle(fontSize: 20)),
-                );
-              } else {
-                List<dynamic> shipmentData = snapshot.data!;
+      body: RefreshIndicator(
+        onRefresh: () => fetchAndProcessData(),
+        child: Container(
+          color: Color(0xFFE9E9E9),
+          child: SingleChildScrollView(
+            child: StreamBuilder<List<dynamic>>(
+              stream: shipmentStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height / 3,),
+                      Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ],
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Text('Currently No Orders', style: TextStyle(fontSize: 20)),
+                  );
+                } else {
+                  List<dynamic> shipmentData = snapshot.data!;
 
-                // Create a map to hold the shipment data for each plate number
-                Map<String, dynamic> uniqueShipmentsMap = {};
+                  // Create a map to hold the shipment data for each plate number
+                  Map<String, dynamic> uniqueShipmentsMap = {};
 
-                // Loop through each shipment
-                for (var shipment in shipmentData) {
-                  String plateNo = shipment['plate_no'];
-                  dynamic deliveryStatusValue = shipment['delivery_status']; // Use dynamic type for flexibility
-                  int? deliveryStatus;
-                  if (deliveryStatusValue is int) {
-                    deliveryStatus = deliveryStatusValue; // If it's an integer, assign it directly
-                  } else if (deliveryStatusValue is String) {
-                    deliveryStatus = int.tryParse(deliveryStatusValue); // Try parsing the string to an integer
+                  // Loop through each shipment
+                  for (var shipment in shipmentData) {
+                    String plateNo = shipment['plate_no'];
+                    dynamic deliveryStatusValue = shipment['delivery_status']; // Use dynamic type for flexibility
+                    int? deliveryStatus;
+                    if (deliveryStatusValue is int) {
+                      deliveryStatus = deliveryStatusValue; // If it's an integer, assign it directly
+                    } else if (deliveryStatusValue is String) {
+                      deliveryStatus = int.tryParse(deliveryStatusValue); // Try parsing the string to an integer
+                    }
+
+                    // Check if the shipment's delivery status is 1 or if there's no existing shipment for this plate number
+                    if (deliveryStatus == 1 || uniqueShipmentsMap[plateNo] == null) {
+                      uniqueShipmentsMap[plateNo] = shipment;
+                    }
                   }
 
-                  // Check if the shipment's delivery status is 1 or if there's no existing shipment for this plate number
-                  if (deliveryStatus == 1 || uniqueShipmentsMap[plateNo] == null) {
-                    uniqueShipmentsMap[plateNo] = shipment;
-                  }
-                }
+                  // Convert the map values back to a list
+                  List<dynamic> uniqueShipments = uniqueShipmentsMap.values.toList();
 
-                // Convert the map values back to a list
-                List<dynamic> uniqueShipments = uniqueShipmentsMap.values.toList();
-
-                return Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(16),
-                          bottomRight: Radius.circular(16),
+                  return Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(16),
+                            bottomRight: Radius.circular(16),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            buildCategoryItem('ALL', Color(0xFFFFD02A), shipmentData),
+                            buildCategoryItem('MOVING', Color(0xFF37D22A), shipmentData),
+                            buildCategoryItem('IDLE', Color(0xFF5470FF), shipmentData),
+                            buildCategoryItem('STOPPED', Color(0xFFD22A2A), shipmentData),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          buildCategoryItem('ALL', Color(0xFFFFD02A), shipmentData),
-                          buildCategoryItem('MOVING', Color(0xFF37D22A), shipmentData),
-                          buildCategoryItem('IDLE', Color(0xFF5470FF), shipmentData),
-                          buildCategoryItem('STOPPED', Color(0xFFD22A2A), shipmentData),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: uniqueShipments.length,
-                      itemBuilder: (context, index) {
-                        dynamic currentShipment = uniqueShipments[index];
-                        if ((selectedCategory == 'ALL' || currentShipment['vehicleStatus'].toUpperCase() == selectedCategory)) {
-                          if (currentShipment['lat'] != null &&
-                              currentShipment['lng'] != null) {
-                            return FutureBuilder<String>(
-                              future: getCityFromCoordinates(
-                                  double.parse(currentShipment['lat']),
-                                  double.parse(currentShipment['lng'])),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.done) {
-                                  if (snapshot.hasData) {
-                                    return buildShipmentCard(
-                                        currentShipment, snapshot.data!);
-                                  } else if (snapshot.hasError) {
-                                    return Text('Error: ${snapshot.error}');
+                      SizedBox(height: 20),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: uniqueShipments.length,
+                        itemBuilder: (context, index) {
+                          dynamic currentShipment = uniqueShipments[index];
+                          if ((selectedCategory == 'ALL' || currentShipment['vehicleStatus'].toUpperCase() == selectedCategory)) {
+                            if (currentShipment['lat'] != null &&
+                                currentShipment['lng'] != null) {
+                              return FutureBuilder<String>(
+                                future: getCityFromCoordinates(
+                                    double.parse(currentShipment['lat']),
+                                    double.parse(currentShipment['lng'])),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    if (snapshot.hasData) {
+                                      return buildShipmentCard(
+                                          currentShipment, snapshot.data!);
+                                    } else if (snapshot.hasError) {
+                                      return Text('Error: ${snapshot.error}');
+                                    }
                                   }
-                                }
-                                return SizedBox();
-                              },
-                            );
+                                  return SizedBox();
+                                },
+                              );
+                            } else {
+                              return buildShipmentCard(
+                                  currentShipment, 'Unknown');
+                            }
                           } else {
-                            return buildShipmentCard(
-                                currentShipment, 'Unknown');
+                            return SizedBox.shrink();
                           }
-                        } else {
-                          return SizedBox.shrink();
-                        }
-                      },
-                    ),
-                  ],
-                );
-              }
-            },
+                        },
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
           ),
         ),
       ),
