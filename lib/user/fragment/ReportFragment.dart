@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +19,8 @@ class _ReportFragmentState extends State<ReportFragment> {
   int _currentPage = 1; // Keep track of the current page number
   int _driverCurrentPage = 1;
   bool _isLoading = false; // Flag to indicate if data is being loaded
+  // Define a debounce timer
+  Timer? _debounceTimer;
 
 
   @override
@@ -213,13 +216,18 @@ class _ReportFragmentState extends State<ReportFragment> {
                 height: MediaQuery.of(context).size.height,
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
-                    if (!_isLoading &&
-                        scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-                      // If not already loading and user has scrolled to the bottom
-                      loadMoreDriverReports(); // Load more reports
-                      return true;
-                    }
-                    return false;
+                    // Cancel the previous debounce timer
+                    _debounceTimer?.cancel();
+
+                    // Start a new debounce timer
+                    _debounceTimer = Timer(Duration(milliseconds: 500), () {
+                      if (!_isLoading && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+                        // If not already loading and user has scrolled to the bottom
+                        loadMoreDriverReports(); // Load more reports
+                      }
+                    });
+
+                    return false; // Return false to allow other widgets to handle the notification
                   },
                   child: ListView.builder(
                     physics: AlwaysScrollableScrollPhysics(),
