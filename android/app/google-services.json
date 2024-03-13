@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "604175490645",
+    "project_id": "yes-tracker-customer",
+    "storage_bucket": "yes-tracker-customer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:604175490645:android:37ad5d9d6d28b01b30bedc",
+        "android_client_info": {
+          "package_name": "com.yta.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_l-sB11D3DWTmHmeEZAl5thVMUz0WZxw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
