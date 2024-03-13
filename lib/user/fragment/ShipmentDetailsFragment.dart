@@ -270,41 +270,44 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
                           return Padding(
                             padding: EdgeInsets.only(bottom: 24), // Add more bottom padding between cards
                             child: Card(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(4, 16, 4, 0),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            '${detail['shipment_code']}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: _getShipmentCodeColor(detail['delivery_status']),
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(4, 16, 4, 0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              '${detail['shipment_code']}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: _getShipmentCodeColor(detail['delivery_status']),
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            '${DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(detail['created_at']))}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12.0, // Adjust the font size to match a subtitle
+                                          Expanded(
+                                            child: Text(
+                                              '${DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(detail['created_at']))}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12.0, // Adjust the font size to match a subtitle
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.end,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.end,
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: 16), // Add some space below the shipment code and created at
-                                  ...detailsRows, // Add the list of detail rows
-                                ],
+                                    SizedBox(height: 16), // Add some space below the shipment code and created at
+                                    ...detailsRows, // Add the list of detail rows
+                                  ],
+                                ),
                               ),
                             ),
                           );
