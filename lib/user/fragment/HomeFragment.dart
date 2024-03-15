@@ -21,6 +21,9 @@ class _HomeFragmentState extends State<HomeFragment> {
   List<dynamic> shipmentData = [];
   Set<String> displayedPlateNumbers = Set();
   late StreamController<List<dynamic>> _shipmentStreamController;
+  String? userID;
+  String? userName;
+  String? androidID;
 
   Stream<List<dynamic>> get shipmentStream => _shipmentStreamController.stream;
 
@@ -30,6 +33,31 @@ class _HomeFragmentState extends State<HomeFragment> {
     _shipmentStreamController =
     StreamController<List<dynamic>>.broadcast(); // Use broadcast for multiple subscribers
     fetchAndProcessData(); // Initial data fetch
+
+    getID().whenComplete(() => {
+      // Update app status to "ONLINE" when the app starts
+      updateAppStatus('ONLINE')
+    });
+  }
+
+  Future<void> updateAppStatus(String status) async {
+    final response = await http.post(
+      Uri.parse(mBaseUrl + 'addAppOnlineStatus/' + userID!),
+      body: {'status': status},
+    );
+
+    if (response.statusCode == 200) {
+      print('App status updated successfully.');
+    } else {
+      print('Failed to update app status.');
+    }
+  }
+
+  Future getID() async {
+    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    userID = sharedPreferences.getString('id');
+    userName = sharedPreferences.getString('name');
+    androidID = sharedPreferences.getString('androidID');
   }
 
   @override
@@ -37,6 +65,7 @@ class _HomeFragmentState extends State<HomeFragment> {
     _shipmentStreamController.close();
     super.dispose();
   }
+
 
   Future<void> fetchAndProcessData() async {
     try {

@@ -128,6 +128,19 @@ class AccountFragmentState extends State<AccountFragment> {
     if (mounted) super.setState(fn);
   }
 
+  Future<void> updateAppStatus(String status) async {
+    final response = await http.post(
+      Uri.parse(mBaseUrl + 'addAppOnlineStatus/' + userID!),
+      body: {'status': status},
+    );
+
+    if (response.statusCode == 200) {
+      print('App status updated successfully.');
+    } else {
+      print('Failed to update app status.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return isLoading
@@ -186,6 +199,7 @@ class AccountFragmentState extends State<AccountFragment> {
                           positiveText: language.yes,
                           negativeText: language.no,
                           onAccept: (c) async{
+                            updateAppStatus("OFFLINE");
                             SharedPreferences prefs = await SharedPreferences.getInstance();
                             await prefs.clear();
                             Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (ctx) => LoginScreen()), (route) => false);
