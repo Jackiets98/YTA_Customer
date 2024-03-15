@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/Users/yoongsangwong/Downloads/flutter"
-export "FLUTTER_APPLICATION_PATH=/Users/yoongsangwong/YTA/Github/YTA_Customer"
+export "FLUTTER_ROOT=/Users/waynewong/Developer/flutter"
+export "FLUTTER_APPLICATION_PATH=/Users/waynewong/Desktop/YTA_Customer"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"

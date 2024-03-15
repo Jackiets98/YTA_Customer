@@ -292,7 +292,14 @@ class _VehicleFragmentState extends State<VehicleFragment> {
                             color: textColor,
                           ),
                         ),
-                        if(shipment['status'] == "静止")Text(
+                        if(shipment['status'] == "静止" && shipment['engine'] == "ON")Text(
+                          'Idle',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        if(shipment['status'] == "静止" && shipment['engine'] == "OFF")Text(
                           'Stopped',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
