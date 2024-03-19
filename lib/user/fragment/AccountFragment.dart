@@ -89,7 +89,7 @@ class AccountFragmentState extends State<AccountFragment> {
           if(imageDB == null){
             userImageURL = DOMAIN_URL + "/images/profile.png";
           }else {
-            userImageURL = DOMAIN_URL + "/images/" + imageDB!;
+            userImageURL = DOMAIN_URL + "/customers/" + imageDB!;
           }
 
 
@@ -161,10 +161,10 @@ class AccountFragmentState extends State<AccountFragment> {
               children: [
                 commonCachedNetworkImage(userImageURL, height: 90, width: 90, fit: BoxFit.cover, alignment: Alignment.center).cornerRadiusWithClipRRect(50),
                 12.height,
+                Text(userName!, style: boldTextStyle(size: 20)),
                 Text(getStringAsync(NAME).validate(), style: boldTextStyle(size: 20)),
                 6.height,
                 Text(appStore.userEmail.validate(), style: secondaryTextStyle(size: 16)),
-                16.height,
                 ListView(
                   padding: EdgeInsets.zero,
                   shrinkWrap: true,
