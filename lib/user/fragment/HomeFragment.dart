@@ -270,7 +270,7 @@ class _HomeFragmentState extends State<HomeFragment> {
     String createdAt = DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(shipment['created_at'] ?? ''));
 
 
-    // Check if all required fields are null
+    // Check if all required fields are nullxs
     bool noShipmentDetails = descriptionParts.isEmpty && amountParts.isEmpty && (colorParts == null || colorParts.isEmpty);
 
     // Check if there are shipment details available
@@ -512,7 +512,7 @@ class _HomeFragmentState extends State<HomeFragment> {
                     SizedBox(height: 20), // Add some space between the status and city
                     RichText(
                       text: TextSpan(
-                        text: 'Location: ',
+                        text: 'Current Location: ',
                         style: TextStyle(
                           fontWeight: FontWeight.normal,
                           color: Colors.black, // Optional: adjust the color as needed
@@ -520,6 +520,25 @@ class _HomeFragmentState extends State<HomeFragment> {
                         children: <TextSpan>[
                           TextSpan(
                             text: city,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black, // Optional: adjust the color as needed
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 8), // Add some space between the status and city
+                    RichText(
+                      text: TextSpan(
+                        text: 'Deliver To: ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          color: Colors.black, // Optional: adjust the color as needed
+                        ),
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: shipment['delivery_location'],
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.black, // Optional: adjust the color as needed
