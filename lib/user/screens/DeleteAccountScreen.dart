@@ -101,7 +101,23 @@ class DeleteAccountScreenState extends State<DeleteAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(language.deleteAccount)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.white, // Set color of icon to white
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(
+          language.deleteAccount,
+          style: TextStyle(
+            color: Colors.white, // Set color of text to white
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           BodyCornerWidget(

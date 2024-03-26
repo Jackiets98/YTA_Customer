@@ -408,6 +408,7 @@ class _VehicleFragmentState extends State<VehicleFragment> {
               style: TextStyle(
                 color: selectedCategory == category ? Colors.white : Colors.black,
                 fontWeight: FontWeight.bold,
+                fontSize: 12,
               ),
             ),
             Text(
@@ -415,6 +416,7 @@ class _VehicleFragmentState extends State<VehicleFragment> {
               style: TextStyle(
                 color: selectedCategory == category ? Colors.white : Colors.black,
                 fontWeight: FontWeight.bold,
+                fontSize: 12,
               ),
             ),
           ],

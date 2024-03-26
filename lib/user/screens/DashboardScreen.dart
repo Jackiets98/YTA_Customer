@@ -79,7 +79,12 @@ class DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: Text('${getTitle()}'),
+        title: Text(
+          '${getTitle()}',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -106,7 +111,11 @@ class DashboardScreenState extends State<DashboardScreen> {
             // }).visible(currentIndex == 0),
             child: IconButton(onPressed: (){
               AccountFragment().launch(context);
-            }, icon: Icon(Icons.person_outline_rounded)),
+            }, icon: Icon(
+              Icons.person_outline_rounded,
+              color: Colors.white,
+            ),
+            ),
           ),
           // Stack(
           //   children: [

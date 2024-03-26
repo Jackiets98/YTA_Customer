@@ -113,12 +113,20 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.white, // Set color of arrow button to white
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: Text('Shipment Details'),
+        title: Text(
+          'Shipment Details',
+          style: TextStyle(
+            color: Colors.white, // Set color of text to white
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -205,14 +213,13 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
                         itemCount: shipmentDetails.length,
                         itemBuilder: (context, index) {
                           var detail = shipmentDetails[index];
-                          List<String> itemCodes = detail['item_code'].split("==");
-                          List<String> descriptions = detail['item_description'].split("==");
+                          List<String> suppliers = detail['supplier_name'].split("==");
                           List<String> amounts = detail['amount'].split("==");
                           List<String> colorHexValues = detail['item_color'].split("==");
 
                           List<Widget> detailsRows = [];
 
-                          for (int i = 0; i < descriptions.length; i++) {
+                          for (int i = 0; i < suppliers.length; i++) {
                             Color color = _convertColor(colorHexValues[i]);
 
                             detailsRows.add(
@@ -220,24 +227,24 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
                                 padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4), // Add vertical and horizontal padding
                                 child: Row(
                                   children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: SizedBox( // Wrap itemCodes with SizedBox to provide a fixed width
-                                        width: 60, // Adjust the width as needed for proper alignment
-                                        child: Padding(
-                                          padding: EdgeInsets.only(right: 8), // Add padding between item_code and other text
-                                          child: Text(
-                                            itemCodes[i],
-                                            style: TextStyle(fontWeight: FontWeight.bold), // Make item_code text bold
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                    // Expanded(
+                                    //   flex: 1,
+                                    //   child: SizedBox( // Wrap itemCodes with SizedBox to provide a fixed width
+                                    //     width: 60, // Adjust the width as needed for proper alignment
+                                    //     child: Padding(
+                                    //       padding: EdgeInsets.only(right: 8), // Add padding between item_code and other text
+                                    //       child: Text(
+                                    //         "Shipment Details",
+                                    //         style: TextStyle(fontWeight: FontWeight.bold), // Make item_code text bold
+                                    //         overflow: TextOverflow.ellipsis,
+                                    //       ),
+                                    //     ),
+                                    //   ),
+                                    // ),
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        descriptions[i],
+                                        suppliers[i],
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -250,13 +257,22 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
                                             amounts.length > i ? amounts[i] : '',
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                          if (colorHexValues[i].isNotEmpty)
-                                            SizedBox(
-                                              width: 16,
-                                              height: 16,
-                                              child: CircleAvatar(
-                                                backgroundColor: color,
-                                              ),
+                                          if (colorHexValues[i].isNotEmpty) // Check if color is not empty
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  getColorName(colorHexValues[i]),
+                                                  style: TextStyle(fontSize: 10), // Set text size to 10
+                                                ),
+                                                SizedBox(width: 4), // Add spacing between text and CircleAvatar
+                                                SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child: CircleAvatar(
+                                                    backgroundColor: color,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                         ],
                                       ),
@@ -392,7 +408,7 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
   String _getCurrentDateTime() {
     DateTime now = DateTime.now();
     String formattedDateTime =
-        '${DateFormat('dd-MM-yyyy, hh:mm:ss a').format(now)}';
+        '${DateFormat('dd-MM-yyyy, hh:mm a').format(now)}';
     return formattedDateTime;
   }
 
@@ -408,4 +424,22 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
         return Colors.black;
     }
   }
+
+  String getColorName(String colorHexValue) {
+    switch (colorHexValue) {
+      case '#ff0000':
+        return 'RED';
+      case '#0000ff':
+        return 'BLUE';
+      case '#000000':
+        return 'BLACK';
+      case '#808080':
+        return 'GREY';
+      case '#ffff00':
+        return 'YELLOW';
+      default:
+        return 'NA';
+    }
+  }
+
 }

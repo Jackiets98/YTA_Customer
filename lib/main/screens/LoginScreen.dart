@@ -105,7 +105,40 @@ class LoginScreenState extends State<LoginScreen> {
           textColor: Colors.white, // Text color of the toast
           fontSize: 16.0, // Font size of the text
         );
-      }else {
+      } else if(body['success'] == 'noCredentials') {
+        // Handle registration error
+        Fluttertoast.showToast(
+          msg: "Please enter Phone Number and Password to log in.",
+          toastLength: Toast.LENGTH_SHORT, // Duration for which the toast message will be displayed
+          gravity: ToastGravity.BOTTOM, // Position of the toast message
+          timeInSecForIosWeb: 1, // Only for iOS and web
+          backgroundColor: Colors.black.withOpacity(0.7), // Background color of the toast
+          textColor: Colors.white, // Text color of the toast
+          fontSize: 16.0, // Font size of the text
+        );
+      } else if(body['success'] == 'noPassword') {
+        // Handle registration error
+        Fluttertoast.showToast(
+          msg: "Please enter Password.",
+          toastLength: Toast.LENGTH_SHORT, // Duration for which the toast message will be displayed
+          gravity: ToastGravity.BOTTOM, // Position of the toast message
+          timeInSecForIosWeb: 1, // Only for iOS and web
+          backgroundColor: Colors.black.withOpacity(0.7), // Background color of the toast
+          textColor: Colors.white, // Text color of the toast
+          fontSize: 16.0, // Font size of the text
+        );
+      } else if(body['success'] == 'noPhone') {
+        // Handle registration error
+        Fluttertoast.showToast(
+          msg: "Please enter Phone Number.",
+          toastLength: Toast.LENGTH_SHORT, // Duration for which the toast message will be displayed
+          gravity: ToastGravity.BOTTOM, // Position of the toast message
+          timeInSecForIosWeb: 1, // Only for iOS and web
+          backgroundColor: Colors.black.withOpacity(0.7), // Background color of the toast
+          textColor: Colors.white, // Text color of the toast
+          fontSize: 16.0, // Font size of the text
+        );
+      } else {
         // Handle registration error
         Fluttertoast.showToast(
           msg: "You have entered the wrong credentials",

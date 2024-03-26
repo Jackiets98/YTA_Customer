@@ -444,7 +444,7 @@ class _ReportFragmentState extends State<ReportFragment> {
                     physics: AlwaysScrollableScrollPhysics(),
                     itemCount: _adminReports.length,
                     itemBuilder: (context, index) {
-                      final dynamic media = _adminReports[index]['media'];
+                      final dynamic media = _adminReports?[index]['media'];
                       List<dynamic>? mediaList;
 
                       if (media != null) {
@@ -478,7 +478,7 @@ class _ReportFragmentState extends State<ReportFragment> {
                                         ),
                                         Padding(
                                           padding: const EdgeInsets.fromLTRB(5, 5, 0, 0),
-                                          child: Text(_adminReports[index]['created_at'], style: TextStyle(fontSize: 11,color: Colors.grey),),
+                                          child: Text(_adminReports?[index]['created_at'] ?? "", style: TextStyle(fontSize: 11,color: Colors.grey),),
                                         ),
                                       ],
                                     ),
@@ -490,7 +490,7 @@ class _ReportFragmentState extends State<ReportFragment> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(_adminReports[index]['text']),
+                                    Text(_adminReports?[index]['text'] ?? ""),
                                   ],
                                 ),
                               ),

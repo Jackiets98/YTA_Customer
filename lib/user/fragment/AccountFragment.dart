@@ -152,7 +152,23 @@ class AccountFragmentState extends State<AccountFragment> {
         ),
       ),
     ):Scaffold(
-      appBar: AppBar(title: Text(language.profile)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.white, // Set color of icon to white
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(
+          language.profile,
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+      ),
       body: Observer(
         builder: (_) => BodyCornerWidget(
           child: SingleChildScrollView(

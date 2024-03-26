@@ -302,7 +302,23 @@ class EditProfileScreenState extends State<EditProfileScreen> {
         ),
       ),
     ):Scaffold(
-      appBar: AppBar(title: Text(language.editProfile)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.white, // Set color of icon to white
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(
+          language.editProfile,
+          style: TextStyle(
+            color: Colors.white, // Set color of text to white
+          ),
+        ),
+      ),
       body: BodyCornerWidget(
         child: Stack(
           children: [

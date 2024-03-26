@@ -263,7 +263,7 @@ class _HomeFragmentState extends State<HomeFragment> {
 
   @override
   Widget buildShipmentCard(dynamic shipment, String city) {
-    List<String> descriptionParts = (shipment['item_description'] ?? '').split('==');
+    List<String> descriptionParts = (shipment['supplier_name'] ?? '').split('==');
     List<String> amountParts = (shipment['amount'] ?? '').split('==');
     List<String>? colorParts = (shipment['item_color'] ?? '').split('==');
     int? deliveryStatus = shipment['delivery_status'] as int?;
@@ -364,8 +364,21 @@ class _HomeFragmentState extends State<HomeFragment> {
         ),
       );
 
-      // Iterate over each shipment detail
+      // Map color values to their corresponding names
+      Map<String, String> colorNames = {
+        '#ff0000': 'RED',
+        '#0000ff': 'BLUE',
+        '#000000': 'BLACK',
+        '#808080': 'GREY',
+        '#ffff00': 'YELLOW',
+        // Add more color mappings as needed
+      };
+
+// Iterate over each shipment detail
       for (int i = 0; i < descriptionParts.length; i++) {
+        String colorName = colorNames[colorParts?[i]] ??
+            'NA'; // Get color name from the map, defaulting to 'NA' if not found
+
         detailsRows.add(
           Padding(
             padding: EdgeInsets.symmetric(vertical: 4),
@@ -390,13 +403,23 @@ class _HomeFragmentState extends State<HomeFragment> {
                       if (colorParts != null &&
                           colorParts.length > i &&
                           colorParts[i].isNotEmpty)
-                        SizedBox(
-                          width: 8,
-                          height: 8,
-                          child: CircleAvatar(
-                            backgroundColor: Color(int.parse(
-                                "0xff" + colorParts[i].substring(1))),
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              colorName,
+                              style: TextStyle(
+                                  fontSize: 10), // Adjust font size here
+                            ), // Display color name before CircleAvatar
+                            SizedBox(width: 8),
+                            SizedBox(
+                              width: 8,
+                              height: 8,
+                              child: CircleAvatar(
+                                backgroundColor: Color(int.parse(
+                                    "0xff" + colorParts[i].substring(1))),
+                              ),
+                            ),
+                          ],
                         ),
                     ],
                   ),
@@ -422,6 +445,7 @@ class _HomeFragmentState extends State<HomeFragment> {
         ),
       );
     }
+
 
 
     return GestureDetector(
@@ -512,25 +536,39 @@ class _HomeFragmentState extends State<HomeFragment> {
                     SizedBox(height: 8),
                     ...detailsRows, // Use detailsRows here
                     SizedBox(height: 24),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (int i = 0; i < colorWidgets.length; i++)
+                            Row(
+                              children: [
+                                colorWidgets[i],
+                                if (i < colorWidgets.length - 1) SizedBox(width: 8), // Add spacing between colorWidgets
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align the children to the left and right edges of the row
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Row(
-                          children: colorWidgets,
-                        ),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Add padding to the container
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.lightBlueAccent, // Set the background color
-                            borderRadius: BorderRadius.circular(4), // Add border radius
+                            color: Colors.lightBlueAccent,
+                            borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             'Total: $totalQuantity',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white), // Set font color to white
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
                       ],
                     ),
+
+
                   ],
                 ),
               ),
@@ -573,6 +611,7 @@ class _HomeFragmentState extends State<HomeFragment> {
               style: TextStyle(
                 color: selectedCategory == category ? Colors.white : Colors.black,
                 fontWeight: FontWeight.bold,
+                fontSize: 12,
               ),
             ),
           ],
