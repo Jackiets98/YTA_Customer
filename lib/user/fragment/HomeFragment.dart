@@ -457,6 +457,7 @@ class _HomeFragmentState extends State<HomeFragment> {
         );
       },
       child: Card(
+        color: Color(0XFFF2FFFF),
         margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         child: Stack(
           children: [
