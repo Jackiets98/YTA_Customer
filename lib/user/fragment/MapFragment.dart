@@ -2,193 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-
-import 'package:dotted_line/dotted_line.dart';
+import 'package:image/image.dart' as IMG;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../main.dart';
-import '../../main/models/OrderListModel.dart';
 import 'package:http/http.dart' as http;
-import '../../main/screens/LoginScreen.dart';
-import '../../user/screens/OrderTrackingScreen.dart';
-import '../../main/utils/Colors.dart';
-import '../../main/utils/Common.dart';
 import '../../main/utils/Constants.dart';
-import '../../user/screens/OrderDetailScreen.dart';
 import 'package:nb_utils/nb_utils.dart';
 
-import '../components/GenerateInvoice.dart';
-
-// class MapFragment extends StatefulWidget {
-//   static String tag = '/OrderFragment';
-//
-//   @override
-//   MapFragmentState createState() => MapFragmentState();
-// }
-//
-// class MapFragmentState extends State<MapFragment> {
-//   String selectedContent = " ";
-//   final Completer<GoogleMapController> _controller =
-//   Completer<GoogleMapController>();
-//
-//   static const CameraPosition _kGooglePlex = CameraPosition(
-//     target: LatLng(3.140853, 101.693207),
-//     zoom: 14.4746,
-//   );
-//
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     init();
-//   }
-//
-//   Future<void> init() async {
-//     final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-//
-//     var obtainedID = sharedPreferences.getString('id');
-//     var deviceID = sharedPreferences.getString('androidID');
-//
-//   }
-//
-//
-//   @override
-//   void setState(fn) {
-//     if (mounted) super.setState(fn);
-//   }
-//
-//   @override
-//   void dispose() {
-//     super.dispose();
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return RefreshIndicator(
-//       onRefresh: () async {
-//         init();
-//       },
-//       child: Padding(
-//         padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
-//         child: Stack(
-//           children: [
-//             GoogleMap(
-//               mapType: MapType.normal,
-//               initialCameraPosition: _kGooglePlex,
-//               onMapCreated: (GoogleMapController controller) {
-//                 _controller.complete(controller);
-//               },
-//             ),
-//             Container(
-//               decoration: BoxDecoration(
-//                 boxShadow: [
-//                   BoxShadow(
-//                     color: Colors.grey.withOpacity(0.5),
-//                     spreadRadius: 2,
-//                     blurRadius: 5,
-//                     offset: Offset(0, 3), // changes position of shadow
-//                   ),
-//                 ],
-//               ),
-//               child: Padding(
-//                 padding: const EdgeInsets.all(8.0),
-//                 child: Row(
-//                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//                   children: [
-//                     Expanded(
-//                       child: ElevatedButton(
-//                         onPressed: () {
-//                           setState(() {
-//                             // Update the content based on the "Dashboard" button press
-//                             selectedContent = 'all';
-//                           });
-//                         },
-//                         child: Text('All', style: TextStyle(color: selectedContent == 'all' || selectedContent == ' ' ? Colors.white : Colors.black),),
-//                         style:ElevatedButton.styleFrom(primary:  selectedContent == 'all' || selectedContent == ' ' ? Colors.amber : Colors.white, elevation: 0, shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.only(
-//                             topLeft: Radius.circular(8.0), // Adjust as needed
-//                             topRight: Radius.circular(0.0), // Set to 0 for a sharp corner
-//                             bottomLeft: Radius.circular(8.0), // Set to 0 for a sharp corner
-//                             bottomRight: Radius.circular(0.0), // Adjust as needed
-//                           ),
-//                         ),
-//                         ),
-//                       ),
-//                     ),
-//                     Expanded(
-//                       child: ElevatedButton(
-//                         onPressed: () {
-//                           setState(() {
-//                             // Update the content based on the "Dashboard" button press
-//                             selectedContent = 'travel';
-//                           });
-//                         },
-//                         child: Text('Travel', style: TextStyle(color: selectedContent == 'travel' ? Colors.white : Colors.black),),
-//                         style:ElevatedButton.styleFrom(primary:  selectedContent == 'travel' ? Colors.green : Colors.white, elevation: 0,shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.only(
-//                             topLeft: Radius.circular(0.0), // Adjust as needed
-//                             topRight: Radius.circular(0.0), // Set to 0 for a sharp corner
-//                             bottomLeft: Radius.circular(0.0), // Set to 0 for a sharp corner
-//                             bottomRight: Radius.circular(0.0), // Adjust as needed
-//                           ),
-//                         ),
-//                         ),
-//                       ),
-//                     ),
-//                     Expanded(
-//                       child: ElevatedButton(
-//                         onPressed: () {
-//                           setState(() {
-//                             // Update the content based on the "Dashboard" button press
-//                             selectedContent = 'idle';
-//                           });
-//                         },
-//                         child: Text('Idle', style: TextStyle(color: selectedContent == 'idle' ? Colors.white : Colors.black),),
-//                         style:ElevatedButton.styleFrom(primary:  selectedContent == 'idle' ? Colors.blue : Colors.white, elevation: 0, shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.only(
-//                             topLeft: Radius.circular(0.0), // Adjust as needed
-//                             topRight: Radius.circular(0.0), // Set to 0 for a sharp corner
-//                             bottomLeft: Radius.circular(0.0), // Set to 0 for a sharp corner
-//                             bottomRight: Radius.circular(0.0), // Adjust as needed
-//                           ),
-//                         ),
-//                         ),
-//                       ),
-//                     ),
-//                     Expanded(
-//                       child: ElevatedButton(
-//                         onPressed: () {
-//                           setState(() {
-//                             // Update the content based on the "Dashboard" button press
-//                             selectedContent = 'stop';
-//                           });
-//                         },
-//                         child: Text('Stop', style: TextStyle(color: selectedContent == 'stop' ? Colors.white : Colors.black),),
-//                         style:ElevatedButton.styleFrom(primary:  selectedContent == 'stop' ? Colors.red : Colors.white, elevation: 0, shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.only(
-//                             topLeft: Radius.circular(0.0), // Adjust as needed
-//                             topRight: Radius.circular(8.0), // Set to 0 for a sharp corner
-//                             bottomLeft: Radius.circular(0.0), // Set to 0 for a sharp corner
-//                             bottomRight: Radius.circular(8.0), // Adjust as needed
-//                           ),
-//                         ),
-//                         ),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 class MapFragment extends StatefulWidget {
   static String tag = '/OrderFragment';
@@ -208,7 +29,7 @@ class MapFragmentState extends State<MapFragment> {
   int idleVehicle = 0;
   int stopVehicle = 0;
   bool isLoading  = false;
-  
+
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(	5.285153, 100.456238),
@@ -230,7 +51,7 @@ class MapFragmentState extends State<MapFragment> {
     var deviceID = sharedPreferences.getString('androidID');
 
     setState(() {
-      isLoading == true;
+      isLoading = true;
     });
 
     // Fetch data based on selected content and update markers
@@ -250,9 +71,9 @@ class MapFragmentState extends State<MapFragment> {
 
       for (var device in allMarkers) {
         if (device['plateNo'].toLowerCase().contains(searchText.toLowerCase())) {
-          final BitmapDescriptor movingCarIcon = await _createMarkerImageFromAsset('green_vehicle.png');
-          final BitmapDescriptor idleCarIcon = await _createMarkerImageFromAsset('blue_vehicle.png');
-          final BitmapDescriptor stopCarIcon = await _createMarkerImageFromAsset('red_vehicle.png');
+          final BitmapDescriptor movingCarIcon = await _createMarkerImageFromAsset(mediaUrl + 'status/green_vehicle/' + device['plateNo'] + '.png');
+          final BitmapDescriptor idleCarIcon = await _createMarkerImageFromAsset(mediaUrl + 'status/blue_vehicle/' + device['plateNo'] + '.png');
+          final BitmapDescriptor stopCarIcon = await _createMarkerImageFromAsset(mediaUrl + 'status/red_vehicle/' + device['plateNo'] + '.png');
           BitmapDescriptor markerIcon;
 
           if (device['status'] == '行驶' && device['engine'] == 'ON') {
@@ -265,6 +86,8 @@ class MapFragmentState extends State<MapFragment> {
             markerIcon = stopCarIcon;
             stopVehicle = stopVehicle;
           }
+
+          print('https://staging.yessirgps.com/public/status/red_vehicle/green_vehicle_' + device['plateNo'] + '.png');
 
           markers.add(
             Marker(
@@ -281,34 +104,18 @@ class MapFragmentState extends State<MapFragment> {
                     builder: (BuildContext context) {
                       return CustomInfoWindow(
                         title: '${device['plateNo']}',
-                        speed: device['battery'] != null ? Text('Speed: ${device['speed']}km/h'): Text('Days: ${device['speed']}'),
+                        speed: Text('Speed: ${device['speed']}km/h'),
                         course: Text('Course: ${device['course']}'),
-                        battery: device['battery'] != null ? Text('Battery: ${device['battery']}V'): Text('Battery: Not Available'),
+                        battery: Text('Battery: ${device['battery']}V'),
                         statuses: Row(
                           children: [
                             Text('Status: '),
-                            if(device['status'] == '行驶')Text(
-                              'Moving',
+                            Text(
+                              '${device['status']}',
                               style: TextStyle(
-                                  color: Colors.green
-                              ),
-                            ),
-                            if(device['status'] == '静止' && device['engine'] == 'ON')Text(
-                              'Idle',
-                              style: TextStyle(
-                                  color: Colors.blue
-                              ),
-                            ),
-                            if(device['status'] == '静止' && device['engine'] == 'OFF')Text(
-                              'Stopped',
-                              style: TextStyle(
-                                color: Colors.red,
-                              ),
-                            ),
-                            if(device['status'] == '离线' && device['engine'] == 'OFF')Text(
-                              'Offline',
-                              style: TextStyle(
-                                color: Colors.grey,
+                                color: device['status'] == '行驶' && device['engine'] == 'ON' ? Colors.green :
+                                device['status'] == '静止' && device['engine'] == 'ON' ? Colors.blue :
+                                Colors.red,
                               ),
                             ),
                           ],
@@ -346,11 +153,39 @@ class MapFragmentState extends State<MapFragment> {
   //   });
   // }
 
-  Future<BitmapDescriptor> _createMarkerImageFromAsset(String assetName) async {
-    final ByteData byteData = await rootBundle.load('assets/$assetName');
-    final Uint8List byteList = byteData.buffer.asUint8List();
-    return BitmapDescriptor.fromBytes(byteList);
+  // Future<BitmapDescriptor> _createMarkerImageFromAsset(String assetName) async {
+  //   final ByteData byteData = await rootBundle.load('assets/$assetName');
+  //   final Uint8List byteList = byteData.buffer.asUint8List();
+  //   return BitmapDescriptor.fromBytes(byteList);
+  // }
+
+  Uint8List? resizeImage(Uint8List data, width, height) {
+    Uint8List? resizedData = data;
+    IMG.Image? img = IMG.decodeImage(data);
+    IMG.Image resized = IMG.copyResize(img!, width: width, height: height);
+    resizedData = Uint8List.fromList(IMG.encodePng(resized));
+    return resizedData;
   }
+
+
+  Future<BitmapDescriptor> _createMarkerImageFromAsset(String assetUrl) async {
+    // Fetch the asset from the URL
+    final http.Response response = await http.get(Uri.parse(assetUrl));
+
+    // Check if the request was successful
+    if (response.statusCode == 200) {
+      // Convert the response body (asset bytes) to Uint8List
+      final Uint8List byteList = response.bodyBytes;
+
+      // Create and return the BitmapDescriptor
+      Uint8List? smallimg = resizeImage(byteList, 200, 200);
+      return BitmapDescriptor.fromBytes(smallimg!);
+    } else {
+      // Handle error if the request fails
+      throw Exception('Failed to load marker image from URL: $assetUrl');
+    }
+  }
+
 
   Future<void> fetchDataAndUpdateMarkers() async {
     try {
@@ -398,12 +233,9 @@ class MapFragmentState extends State<MapFragment> {
         // Add markers based on filteredList
         for (var device in filteredList) {
           // Load icon images for each marker type
-          final BitmapDescriptor movingCarIcon = await _createMarkerImageFromAsset(
-              'green_vehicle.png');
-          final BitmapDescriptor idleCarIcon = await _createMarkerImageFromAsset(
-              'blue_vehicle.png');
-          final BitmapDescriptor stopCarIcon = await _createMarkerImageFromAsset(
-              'red_vehicle.png');
+          final BitmapDescriptor movingCarIcon = await _createMarkerImageFromAsset(mediaUrl + 'status/green_vehicle/' + device['plateNo'] + '.png');
+          final BitmapDescriptor idleCarIcon = await _createMarkerImageFromAsset(mediaUrl + 'status/blue_vehicle/' + device['plateNo'] + '.png');
+          final BitmapDescriptor stopCarIcon = await _createMarkerImageFromAsset(mediaUrl + 'status/red_vehicle/' + device['plateNo'] + '.png');
           BitmapDescriptor markerIcon;
 
           // Determine which icon to use based on the device status or type
@@ -455,22 +287,22 @@ class MapFragmentState extends State<MapFragment> {
                     builder: (BuildContext context) {
                       return CustomInfoWindow(
                         title: '${device['plateNo']}',
-                        speed: device['battery'] != null ? Text('Speed: ${device['speed']}km/h'): Text('Days: ${device['speed']}'),
+                        speed: Text('Speed: ${device['speed']}km/h'),
                         course: Text('Course: ${device['course']}'),
-                        battery: device['battery'] != null ? Text('Battery: ${device['battery']}V'): Text('Battery: Not Available'),
+                        battery: Text('Battery: ${device['battery']}V'),
                         statuses: Row(
                           children: [
                             Text('Status: '),
                             if(device['status'] == '行驶')Text(
                               'Moving',
                               style: TextStyle(
-                                color: Colors.green
+                                  color: Colors.green
                               ),
                             ),
                             if(device['status'] == '静止' && device['engine'] == 'ON')Text(
                               'Idle',
                               style: TextStyle(
-                                color: Colors.blue
+                                  color: Colors.blue
                               ),
                             ),
                             if(device['status'] == '静止' && device['engine'] == 'OFF')Text(
@@ -482,7 +314,7 @@ class MapFragmentState extends State<MapFragment> {
                             if(device['status'] == '离线' && device['engine'] == 'OFF')Text(
                               'Offline',
                               style: TextStyle(
-                                color: Colors.red,
+                                color: Colors.grey,
                               ),
                             ),
                           ],
@@ -532,14 +364,16 @@ class MapFragmentState extends State<MapFragment> {
     // _timer.cancel();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-    return isLoading? CircularProgressIndicator():RefreshIndicator(
+    return isLoading? Center(child: CircularProgressIndicator()):RefreshIndicator(
       onRefresh: () async {
         await init();
       },
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 50),
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 49),
         child: Stack(
           children: [
             GoogleMap(
@@ -603,7 +437,7 @@ class MapFragmentState extends State<MapFragment> {
                           ),
                         ),
                       ),
-            Expanded(
+                      Expanded(
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
@@ -612,7 +446,7 @@ class MapFragmentState extends State<MapFragment> {
                               fetchDataAndUpdateMarkers();
                             });
                           },
-                          child: Text('Travel - $travelVehicle', style: TextStyle(fontSize: 11,color: selectedContent == 'travel' ? Colors.white : Colors.black),),
+                          child: Text('Travel - $travelVehicle', style: TextStyle(fontSize: 11, color: selectedContent == 'travel' ? Colors.white : Colors.black),),
                           style:ElevatedButton.styleFrom(backgroundColor: selectedContent == 'travel' ? Colors.green : Colors.white, elevation: 0,shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(0.0), // Adjust as needed
@@ -633,7 +467,7 @@ class MapFragmentState extends State<MapFragment> {
                               fetchDataAndUpdateMarkers();
                             });
                           },
-                          child: Text('Idle - $idleVehicle', style: TextStyle(fontSize: 11,color: selectedContent == 'idle' ? Colors.white : Colors.black),),
+                          child: Text('Idle - $idleVehicle', style: TextStyle(fontSize: 11, color: selectedContent == 'idle' ? Colors.white : Colors.black),),
                           style:ElevatedButton.styleFrom(backgroundColor: selectedContent == 'idle' ? Colors.blue : Colors.white, elevation: 0, shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(0.0), // Adjust as needed
@@ -654,7 +488,7 @@ class MapFragmentState extends State<MapFragment> {
                               fetchDataAndUpdateMarkers();
                             });
                           },
-                          child: Text('Stop - $stopVehicle', style: TextStyle(fontSize: 11,color: selectedContent == 'stop' ? Colors.white : Colors.black),),
+                          child: Text('Stop - $stopVehicle', style: TextStyle(fontSize: 11, color: selectedContent == 'stop' ? Colors.white : Colors.black),),
                           style:ElevatedButton.styleFrom(backgroundColor: selectedContent == 'stop' ? Colors.red : Colors.white, elevation: 0, shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(0.0), // Adjust as needed
@@ -762,4 +596,3 @@ Color getColorFromStatusAndEngine(String status, String engine) {
       return Colors.grey;
   }
 }
-

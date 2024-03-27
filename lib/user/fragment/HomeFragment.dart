@@ -33,16 +33,17 @@ class _HomeFragmentState extends State<HomeFragment> {
     _shipmentStreamController =
     StreamController<List<dynamic>>.broadcast(); // Use broadcast for multiple subscribers
     fetchAndProcessData(); // Initial data fetch
-
-    getID().whenComplete(() => {
       // Update app status to "ONLINE" when the app starts
-      updateAppStatus('ONLINE')
-    });
+      updateAppStatus('ONLINE');
+
   }
 
   Future<void> updateAppStatus(String status) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? obtainedID = prefs.getString('id');
+    print("id: $obtainedID");
     final response = await http.post(
-      Uri.parse(mBaseUrl + 'addAppOnlineStatus/' + userID!),
+      Uri.parse(mBaseUrl + 'addAppOnlineStatus/' + obtainedID!),
       body: {'status': status},
     );
 
@@ -53,12 +54,6 @@ class _HomeFragmentState extends State<HomeFragment> {
     }
   }
 
-  Future getID() async {
-    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    userID = sharedPreferences.getString('id');
-    userName = sharedPreferences.getString('name');
-    androidID = sharedPreferences.getString('androidID');
-  }
 
   @override
   void dispose() {
