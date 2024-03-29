@@ -262,7 +262,7 @@ class _HomeFragmentState extends State<HomeFragment> {
     List<String> amountParts = (shipment['amount'] ?? '').split('==');
     List<String>? colorParts = (shipment['item_color'] ?? '').split('==');
     int? deliveryStatus = shipment['delivery_status'] as int?;
-    String createdAt = DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(shipment['created_at'] ?? ''));
+    String createdAt = DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(shipment['shipment_created_at'] ?? ''));
 
 
     // Check if all required fields are nullxs
