@@ -262,7 +262,13 @@ class _HomeFragmentState extends State<HomeFragment> {
     List<String> amountParts = (shipment['amount'] ?? '').split('==');
     List<String>? colorParts = (shipment['item_color'] ?? '').split('==');
     int? deliveryStatus = shipment['delivery_status'] as int?;
-    String createdAt = DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(shipment['shipment_created_at'] ?? ''));
+    String? createdAt;
+    if (shipment['shipment_created_at'] != null) {
+      createdAt = DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(shipment['shipment_created_at']));
+    } else {
+      createdAt = "                       ";
+    }
+
 
 
     // Check if all required fields are nullxs
@@ -477,12 +483,12 @@ class _HomeFragmentState extends State<HomeFragment> {
                   children: [
                     Text('${shipment['plate_no']}',
                       style: TextStyle(fontWeight: FontWeight.bold),),
-                    FittedBox( // Use FittedBox to fit the child within available space
+                    FittedBox(
                       child: Text(
-                        createdAt, // Use the createdAt time here
+                        createdAt ?? '', // Use createdAt if it's not null, otherwise use an empty string
                         style: TextStyle(
-                          color: Colors.grey, // Adjust text color as needed
-                          fontSize: 12, // Adjust font size as needed
+                          color: Colors.grey,
+                          fontSize: 12,
                         ),
                       ),
                     ),
