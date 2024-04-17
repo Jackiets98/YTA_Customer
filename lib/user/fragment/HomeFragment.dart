@@ -458,7 +458,7 @@ class _HomeFragmentState extends State<HomeFragment> {
         );
       },
       child: Card(
-        color: Color(0XFFF2FFFF),
+        color: Color(0xffcdeffd),
         margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         child: Stack(
           children: [
@@ -514,6 +514,25 @@ class _HomeFragmentState extends State<HomeFragment> {
                     SizedBox(height: 20), // Add some space between the status and city
                     RichText(
                       text: TextSpan(
+                        text: 'Location From: ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          color: Colors.black, // Optional: adjust the color as needed
+                        ),
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: shipment['deliver_from'],
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black, // Optional: adjust the color as needed
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    RichText(
+                      text: TextSpan(
                         text: 'Current Location: ',
                         style: TextStyle(
                           fontWeight: FontWeight.normal,
@@ -549,11 +568,10 @@ class _HomeFragmentState extends State<HomeFragment> {
                         ],
                       ),
                     ),
-                    // Display the city
-                    Container(
-                      height: 4, // Increase the height for a thicker divider
-                      color: Colors.grey[100], // Adjust color as needed
-                    ),// Add a divider below the city
+                    Divider(
+                      thickness: 1,
+                      color: Colors.blue,
+                    ),
                     SizedBox(height: 8),
                     ...detailsRows, // Use detailsRows here
                     SizedBox(height: 24),
