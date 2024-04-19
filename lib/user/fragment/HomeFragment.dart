@@ -168,15 +168,23 @@ class _HomeFragmentState extends State<HomeFragment> {
                   for (var shipment in shipmentData) {
                     String plateNo = shipment['plate_no'];
                     dynamic deliveryStatusValue = shipment['delivery_status']; // Use dynamic type for flexibility
+                    dynamic vehicleStatus = shipment['vehicleStatus'];
+                    dynamic accStatus = shipment['engine'];
+                    dynamic carStatus = shipment['status'];
+                    dynamic engineStatus = '';
+                    if (vehicleStatus == 'Moving' || vehicleStatus == 'Idle' && accStatus == true) {
+                      engineStatus = 'true';
+                    } else if (vehicleStatus == 'Stopped' || accStatus == false || carStatus == '离线') {
+                      engineStatus = 'false';
+                    }
                     int? deliveryStatus;
                     if (deliveryStatusValue is int) {
                       deliveryStatus = deliveryStatusValue; // If it's an integer, assign it directly
                     } else if (deliveryStatusValue is String) {
                       deliveryStatus = int.tryParse(deliveryStatusValue); // Try parsing the string to an integer
                     }
-
                     // Check if the shipment's delivery status is 1 or if there's no existing shipment for this plate number
-                    if (deliveryStatus == 1 || uniqueShipmentsMap[plateNo] == null) {
+                    if (engineStatus == 'true') {
                       uniqueShipmentsMap[plateNo] = shipment;
                     }
                   }
@@ -186,25 +194,25 @@ class _HomeFragmentState extends State<HomeFragment> {
 
                   return Column(
                     children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(16),
-                            bottomRight: Radius.circular(16),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            buildCategoryItem('ALL', Color(0xFFFFD02A), shipmentData),
-                            buildCategoryItem('MOVING', Color(0xFF37D22A), shipmentData),
-                            buildCategoryItem('IDLE', Color(0xFF5470FF), shipmentData),
-                            buildCategoryItem('STOPPED', Color(0xFFD22A2A), shipmentData),
-                          ],
-                        ),
-                      ),
+                      // Container(
+                      //   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      //   decoration: BoxDecoration(
+                      //     color: Colors.white,
+                      //     borderRadius: BorderRadius.only(
+                      //       bottomLeft: Radius.circular(16),
+                      //       bottomRight: Radius.circular(16),
+                      //     ),
+                      //   ),
+                      //   child: Row(
+                      //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      //     children: [
+                      //       buildCategoryItem('ALL', Color(0xFFFFD02A), shipmentData),
+                      //       buildCategoryItem('MOVING', Color(0xFF37D22A), shipmentData),
+                      //       buildCategoryItem('IDLE', Color(0xFF5470FF), shipmentData),
+                      //       buildCategoryItem('STOPPED', Color(0xFFD22A2A), shipmentData),
+                      //     ],
+                      //   ),
+                      // ),
                       SizedBox(height: 20),
                       ListView.builder(
                         shrinkWrap: true,
@@ -212,6 +220,18 @@ class _HomeFragmentState extends State<HomeFragment> {
                         itemCount: uniqueShipments.length,
                         itemBuilder: (context, index) {
                           dynamic currentShipment = uniqueShipments[index];
+                          // dynamic vehicleStatus = currentShipment['vehicleStatus'];
+                          // dynamic accStatus = currentShipment['engine'];
+                          // dynamic carStatus = currentShipment['status'];
+                          // dynamic engineStatus = '';
+                          // if (vehicleStatus == 'Moving' || vehicleStatus == 'Idle' && accStatus == true) {
+                          //   engineStatus == true;
+                          // } else if (vehicleStatus == 'Stopped' || accStatus == false || carStatus == '离线') {
+                          //   engineStatus == false;
+                          // } else {
+                          //   engineStatus == false;
+                          // }
+                          // print(currentShipment);
                           if ((selectedCategory == 'ALL' || currentShipment['vehicleStatus'].toUpperCase() == selectedCategory)) {
                             if (currentShipment['lat'] != null &&
                                 currentShipment['lng'] != null) {
@@ -568,44 +588,44 @@ class _HomeFragmentState extends State<HomeFragment> {
                         ],
                       ),
                     ),
-                    Divider(
-                      thickness: 1,
-                      color: Colors.blue,
-                    ),
-                    SizedBox(height: 8),
-                    ...detailsRows, // Use detailsRows here
-                    SizedBox(height: 24),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          for (int i = 0; i < colorWidgets.length; i++)
-                            Row(
-                              children: [
-                                colorWidgets[i],
-                                if (i < colorWidgets.length - 1) SizedBox(width: 8), // Add spacing between colorWidgets
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.lightBlueAccent,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Total: $totalQuantity',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Divider(
+                    //   thickness: 1,
+                    //   color: Colors.blue,
+                    // ),
+                    // SizedBox(height: 8),
+                    // ...detailsRows, // Use detailsRows here
+                    // SizedBox(height: 24),
+                    // SingleChildScrollView(
+                    //   scrollDirection: Axis.horizontal,
+                    //   child: Row(
+                    //     children: [
+                    //       for (int i = 0; i < colorWidgets.length; i++)
+                    //         Row(
+                    //           children: [
+                    //             colorWidgets[i],
+                    //             if (i < colorWidgets.length - 1) SizedBox(width: 8), // Add spacing between colorWidgets
+                    //           ],
+                    //         ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // SizedBox(height: 12),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.end,
+                    //   children: [
+                    //     Container(
+                    //       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    //       decoration: BoxDecoration(
+                    //         color: Colors.lightBlueAccent,
+                    //         borderRadius: BorderRadius.circular(4),
+                    //       ),
+                    //       child: Text(
+                    //         'Total: $totalQuantity',
+                    //         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
 
 
                   ],

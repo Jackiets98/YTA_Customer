@@ -66,7 +66,7 @@ class MapFragmentState extends State<MapFragment> {
       context: context,
       builder: (BuildContext context) {
         return CustomInfoWindow(
-          title: '${device['plateNo']}',
+          title: '${device['plate_no']}',
           speed: Text('Speed: ${device['speed']}km/h'),
           course: Text('Course: ${device['course']}'),
           battery: Text('Battery: ${device['battery']}V'),
@@ -160,26 +160,26 @@ class MapFragmentState extends State<MapFragment> {
           if (selectedContent == 'all') {
             // Add all markers regardless of status
             if (device['status'] == '行驶' && device['engine'] == 'ON') {
-              markerIcon = await Image.network(mediaUrl + 'status/green_vehicle/' + device['plateNo'] + '.png');
+              markerIcon = await Image.network(mediaUrl + 'status/green_vehicle/' + device['plate_no'] + '.png');
               travelVehicle++;
             } else if (device['status'] == '静止' && device['engine'] == 'ON') {
-              markerIcon = await Image.network(mediaUrl + 'status/blue_vehicle/' + device['plateNo'] + '.png');
+              markerIcon = await Image.network(mediaUrl + 'status/blue_vehicle/' + device['plate_no'] + '.png');
               idleVehicle++;
             } else {
-              markerIcon = await Image.network(mediaUrl + 'status/red_vehicle/' + device['plateNo'] + '.png');
+              markerIcon = await Image.network(mediaUrl + 'status/red_vehicle/' + device['plate_no'] + '.png');
               stopVehicle++;
             }
           } else if (selectedContent == 'travel') {
-            markerIcon = await Image.network(mediaUrl + 'status/green_vehicle/' + device['plateNo'] + '.png');
+            markerIcon = await Image.network(mediaUrl + 'status/green_vehicle/' + device['plate_no'] + '.png');
             travelVehicle++;
           } else if (selectedContent == 'idle' &&
               device['status'] == '静止' && device['engine'] == 'ON') {
-            markerIcon = await Image.network(mediaUrl + 'status/blue_vehicle/' + device['plateNo'] + '.png');
+            markerIcon = await Image.network(mediaUrl + 'status/blue_vehicle/' + device['plate_no'] + '.png');
             idleVehicle++;
             print(device);
           } else if (selectedContent == 'stop' &&
               device['status'] != '行驶' && device['engine'] == 'OFF') {
-            markerIcon = await Image.network(mediaUrl + 'status/red_vehicle/' + device['plateNo'] + '.png');
+            markerIcon = await Image.network(mediaUrl + 'status/red_vehicle/' + device['plate_no'] + '.png');
             stopVehicle++;
           } else {
             // If not matching any condition, continue to next device
@@ -246,12 +246,12 @@ class MapFragmentState extends State<MapFragment> {
       bool markerFound = false;
 
       for (var device in allMarkers) {
-        if (device['plateNo'].toLowerCase().contains(searchText.toLowerCase())) {
+        if (device['plate_no'].toLowerCase().contains(searchText.toLowerCase())) {
           Image markerIcon;
 
-          final Image movingCarIcon = await Image.network(mediaUrl + 'status/green_vehicle/' + device['plateNo'] + '.png');
-          final Image idleCarIcon = await Image.network(mediaUrl + 'status/blue_vehicle/' + device['plateNo'] + '.png');
-          final Image stopCarIcon = await Image.network(mediaUrl + 'status/red_vehicle/' + device['plateNo'] + '.png');
+          final Image movingCarIcon = await Image.network(mediaUrl + 'status/green_vehicle/' + device['plate_no'] + '.png');
+          final Image idleCarIcon = await Image.network(mediaUrl + 'status/blue_vehicle/' + device['plate_no'] + '.png');
+          final Image stopCarIcon = await Image.network(mediaUrl + 'status/red_vehicle/' + device['plate_no'] + '.png');
 
           if (device['status'] == '行驶' && device['engine'] == 'ON') {
             markerIcon = movingCarIcon;
@@ -263,6 +263,8 @@ class MapFragmentState extends State<MapFragment> {
             markerIcon = stopCarIcon;
             stopVehicle = stopVehicle;
           }
+
+            print(device['plate_no']);
 
           markers.add(
             Marker(

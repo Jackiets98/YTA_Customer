@@ -220,7 +220,7 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
                           List<Widget> detailsRows = [];
 
                           for (int i = 0; i < suppliers.length; i++) {
-                            Color color = _convertColor(colorHexValues[i]);
+                            Color? color = _convertColor(colorHexValues[i]);
 
                             detailsRows.add(
                               Padding(
@@ -363,6 +363,9 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
       case 'Stopped':
         backgroundColor = Color(0xFFD22A2A);
         break;
+      case 'Offline':
+        backgroundColor = Colors.black;
+        break;
       default:
         backgroundColor = Colors.grey;
     }
@@ -400,10 +403,15 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
   }
 
   Color _convertColor(String hexColor) {
-    hexColor = hexColor.replaceAll('#', '');
-    int colorInt = int.parse(hexColor, radix: 16);
-    return Color(0xFF000000 + colorInt);
+    if (hexColor == '') {
+      return Color(0xFF000000); // Return white if hexColor is null
+    } else {
+      hexColor = hexColor.replaceAll('#', '');
+      int colorInt = int.parse(hexColor, radix: 16);
+      return Color(0xFF000000 + colorInt);
+    }
   }
+
 
   String _getCurrentDateTime() {
     DateTime now = DateTime.now();
@@ -437,6 +445,8 @@ class _ShipmentDetailsFragmentState extends State<ShipmentDetailsFragment> {
         return 'GREY';
       case '#ffff00':
         return 'YELLOW';
+      case '#fffff0':
+        return 'WHITE';
       default:
         return 'NA';
     }

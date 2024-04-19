@@ -267,7 +267,7 @@ class _ReportFragmentState extends State<ReportFragment> {
                                       title: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text('${driverReports[index]['plate_no']}',
+                                          Text('${driverReports[index]['current_vehicle_plate']}',
                                             style: TextStyle(fontWeight: FontWeight.bold),),
                                           FittedBox( // Use FittedBox to fit the child within available space
                                             child: Text(
@@ -287,7 +287,12 @@ class _ReportFragmentState extends State<ReportFragment> {
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text('${driverReports[index]['driver_surname']}'),
+                                              Flexible(
+                                                child: Text(
+                                                  '${driverReports[index]['driver_name']}',
+                                                  overflow: TextOverflow.visible, // or TextOverflow.ellipsis if you want to show ellipsis (...) for overflow
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ],

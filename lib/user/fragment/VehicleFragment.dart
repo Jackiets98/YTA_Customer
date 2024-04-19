@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,22 +19,47 @@ class VehicleFragment extends StatefulWidget {
 class _VehicleFragmentState extends State<VehicleFragment> {
   String selectedCategory = 'ALL';
   List<dynamic> shipmentData = [];
-  bool isLoading = true;
-  int completedTasks = 0;
+  Set<String> displayedPlateNumbers = Set();
+  late StreamController<List<dynamic>> _shipmentStreamController;
+  String? userID;
+  String? userName;
+  String? androidID;
+
+  Stream<List<dynamic>> get shipmentStream => _shipmentStreamController.stream;
 
   @override
   void initState() {
     super.initState();
+    _shipmentStreamController =
+    StreamController<List<dynamic>>.broadcast(); // Use broadcast for multiple subscribers
     fetchAndProcessData(); // Initial data fetch
+    // Update app status to "ONLINE" when the app starts
+    updateAppStatus('ONLINE');
+
   }
+
+  Future<void> updateAppStatus(String status) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? obtainedID = prefs.getString('id');
+    print("id: $obtainedID");
+    final response = await http.post(
+      Uri.parse(mBaseUrl + 'addAppOnlineStatus/' + obtainedID!),
+      body: {'status': status},
+    );
+
+    if (response.statusCode == 200) {
+      print('App status updated successfully.');
+    } else {
+      print('Failed to update app status.');
+    }
+  }
+
 
   @override
   void dispose() {
+    _shipmentStreamController.close();
     super.dispose();
   }
-
-
-
 
 
   Future<void> fetchAndProcessData() async {
@@ -44,7 +68,7 @@ class _VehicleFragmentState extends State<VehicleFragment> {
       String? obtainedID = prefs.getString('id');
       String? deviceID = prefs.getString('androidID');
 
-      final String apiUrl = mBaseUrl + 'getDeviceList';
+      final String apiUrl = mBaseUrl + 'vehicleCustDetails/' + obtainedID!;
       final Map<String, String> headers = {
         'Content-Type': 'application/json',
         // Add any additional headers if required
@@ -53,23 +77,28 @@ class _VehicleFragmentState extends State<VehicleFragment> {
       final response = await http.get(Uri.parse(apiUrl), headers: headers);
 
       if (response.statusCode == 200) {
-        List<dynamic> allVehicles = json.decode(response.body);
-        setState(() {
-          shipmentData = allVehicles;
-        });
+        List<dynamic> shipments = json.decode(response.body)['shipments'];
+        if (!_shipmentStreamController.isClosed) {
+          _shipmentStreamController.add(shipments); // Add fetched data to the stream
+        } else {
+          // Handle the case where the stream controller is already closed
+          print('Stream controller is closed, unable to add data');
+        }
       } else {
         throw Exception('Failed to load shipment data');
       }
     } catch (e) {
-      print('Error fetching data: $e');
-      // Handle error
-    }finally {
-      // Set isLoading to false after the fetch is complete
-      setState(() {
-        isLoading = false;
-      });
+      if (!_shipmentStreamController.isClosed) {
+        _shipmentStreamController.addError(e); // Add error to the stream
+      } else {
+        // Handle the case where the stream controller is already closed
+        print('Stream controller is closed, unable to add error');
+      }
     }
   }
+
+
+
 
   Future<String> getCityFromCoordinates(double latitude, double longitude) async {
     try {
@@ -91,7 +120,6 @@ class _VehicleFragmentState extends State<VehicleFragment> {
         else if (placemarks.first.country != '' && placemarks.first.country!.isNotEmpty) {
           return placemarks.first.country!;
         }
-
       }
     } catch (e) {
       print('Error retrieving city: $e');
@@ -102,81 +130,130 @@ class _VehicleFragmentState extends State<VehicleFragment> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? Scaffold(
-      backgroundColor: Color(0xFF253280),
-      body: Center(
-        child: SpinKitWanderingCubes(
-          color: Colors.white,
-        ),
-      ),
-    )
-        : Scaffold(
-      body: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: Color(0xFFE9E9E9),
+      body: RefreshIndicator(
+        onRefresh: () => fetchAndProcessData(),
         child: Container(
           color: Color(0xFFE9E9E9),
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    buildCategoryItem('ALL', Color(0xFFFFD02A)),
-                    buildCategoryItem('MOVING', Color(0xFF37D22A)),
-                    buildCategoryItem('IDLE', Color(0xFF5470FF)),
-                    buildCategoryItem('STOPPED', Color(0xFFD22A2A)),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20),
-              shipmentData.isNotEmpty
-                  ? ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: shipmentData.length,
-                itemBuilder: (context, index) {
-                  dynamic currentShipment = shipmentData[index];
-                  if (selectedCategory == 'ALL' || currentShipment['newStatus'] == selectedCategory) {
-                    if (currentShipment['lat'] != null && currentShipment['lng'] != null) {
-                      return FutureBuilder<String>(
-                        future: getCityFromCoordinates(
-                          double.parse(currentShipment['lat']),
-                          double.parse(currentShipment['lng']),
-                        ),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.done) {
-                            if (snapshot.hasData) {
-                              return buildShipmentCard(currentShipment, snapshot.data!);
-                            } else if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            }
-                          }
-                          // If the future hasn't completed yet or if there's no data available,
-                          // return a SizedBox.shrink() to indicate that there's no loading widget
-                          return SizedBox.shrink();
-                        },
-                      );
-                    } else {
-                      return buildShipmentCard(currentShipment, 'Unknown');
+          child: SingleChildScrollView(
+            child: StreamBuilder<List<dynamic>>(
+              stream: shipmentStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height / 3,),
+                      Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ],
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Text('Currently No Orders', style: TextStyle(fontSize: 20)),
+                  );
+                } else {
+                  List<dynamic> shipmentData = snapshot.data!;
+
+                  // Create a map to hold the shipment data for each plate number
+                  Map<String, dynamic> uniqueShipmentsMap = {};
+
+                  // Loop through each shipment
+                  for (var shipment in shipmentData) {
+                    String plateNo = shipment['plate_no'];
+                    dynamic deliveryStatusValue = shipment['delivery_status']; // Use dynamic type for flexibility
+                    dynamic vehicleStatus = shipment['vehicleStatus'];
+                    dynamic accStatus = shipment['engine'];
+                    dynamic carStatus = shipment['status'];
+                    dynamic engineStatus = '';
+                    if (vehicleStatus == 'Moving' || vehicleStatus == 'Idle' && accStatus == true) {
+                      engineStatus = 'true';
+                    } else if (vehicleStatus == 'Stopped' || accStatus == false || carStatus == '离线') {
+                      engineStatus = 'false';
                     }
-                  } else {
-                    return SizedBox.shrink();
+                    int? deliveryStatus;
+                    if (deliveryStatusValue is int) {
+                      deliveryStatus = deliveryStatusValue; // If it's an integer, assign it directly
+                    } else if (deliveryStatusValue is String) {
+                      deliveryStatus = int.tryParse(deliveryStatusValue); // Try parsing the string to an integer
+                    }
+                    // Check if the shipment's delivery status is 1 or if there's no existing shipment for this plate number
+                    if (deliveryStatus == 1 || uniqueShipmentsMap[plateNo] == null) {
+                      uniqueShipmentsMap[plateNo] = shipment;
+                    }
                   }
-                },
-              )
-                  : Text(
-                'Currently No Orders',
-                style: TextStyle(fontSize: 20),
-              ),
-            ],
+
+                  // Convert the map values back to a list
+                  List<dynamic> uniqueShipments = uniqueShipmentsMap.values.toList();
+
+                  return Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(16),
+                            bottomRight: Radius.circular(16),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            buildCategoryItem('ALL', Color(0xFFFFD02A), shipmentData),
+                            buildCategoryItem('MOVING', Color(0xFF37D22A), shipmentData),
+                            buildCategoryItem('IDLE', Color(0xFF5470FF), shipmentData),
+                            buildCategoryItem('STOPPED', Color(0xFFD22A2A), shipmentData),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: uniqueShipments.length,
+                        itemBuilder: (context, index) {
+                          dynamic currentShipment = uniqueShipments[index];
+                          if ((selectedCategory == 'ALL' || currentShipment['vehicleStatus'].toUpperCase() == selectedCategory)) {
+                            if (currentShipment['lat'] != null &&
+                                currentShipment['lng'] != null) {
+                              return FutureBuilder<String>(
+                                future: getCityFromCoordinates(
+                                    double.parse(currentShipment['lat']),
+                                    double.parse(currentShipment['lng'])),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.done) {
+                                    if (snapshot.hasData) {
+                                      return buildShipmentCard(
+                                          currentShipment, snapshot.data!);
+                                    } else if (snapshot.hasError) {
+                                      return Text('Error: ${snapshot.error}');
+                                    }
+                                  }
+                                  return SizedBox();
+                                },
+                              );
+                            } else {
+                              return buildShipmentCard(
+                                  currentShipment, 'Unknown');
+                            }
+                          } else {
+                            return SizedBox.shrink();
+                          }
+                        },
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
           ),
         ),
       ),
@@ -184,21 +261,45 @@ class _VehicleFragmentState extends State<VehicleFragment> {
   }
 
 
+
+
+
   @override
   Widget buildShipmentCard(dynamic shipment, String city) {
+    List<String> descriptionParts = (shipment['supplier_name'] ?? '').split('==');
+    List<String> amountParts = (shipment['amount'] ?? '').split('==');
+    List<String>? colorParts = (shipment['item_color'] ?? '').split('==');
+    int? deliveryStatus = shipment['delivery_status'] as int?;
+    String? createdAt;
+    if (shipment['shipment_created_at'] != null) {
+      createdAt = DateFormat('dd-MM-yyyy, hh:mm:ss a').format(DateTime.parse(shipment['shipment_created_at']));
+    } else {
+      createdAt = "                       ";
+    }
+
+
+
+    // Check if all required fields are nullxs
+    bool noShipmentDetails = descriptionParts.isEmpty && amountParts.isEmpty && (colorParts == null || colorParts.isEmpty);
+
+    // Check if there are shipment details available
+    bool hasShipments = deliveryStatus != null && deliveryStatus == 1 && !noShipmentDetails;
+
     // Determine text color based on the selected category and vehicle status
     Color textColor;
-    String status = shipment['status'];
-    String engineStatus = shipment['engine'];
-    var batteryStatus = shipment['battery'];
-
     if (selectedCategory == 'ALL') {
-      switch (status) {
-        case '行驶':
+      switch (shipment['vehicleStatus'].toUpperCase()) {
+        case 'MOVING':
           textColor = Color(0xFF37D22A);
           break;
-        case '静止':
-          textColor = engineStatus == 'ON' ? Color(0xFF5470FF) : Color(0xFFD22A2A);
+        case 'IDLE':
+          textColor = Color(0xFF5470FF);
+          break;
+        case 'STOPPED':
+          textColor = Color(0xFFD22A2A);
+          break;
+        case 'OFFLINE':
+          textColor = Colors.black;
           break;
         default:
           textColor = Colors.black;
@@ -211,10 +312,13 @@ class _VehicleFragmentState extends State<VehicleFragment> {
           textColor = Color(0xFF37D22A);
           break;
         case 'IDLE':
-          textColor = engineStatus == 'ON' ? Color(0xFF5470FF) : Colors.black;
+          textColor = Color(0xFF5470FF);
           break;
         case 'STOPPED':
-          textColor = (engineStatus == 'OFF' && batteryStatus != null) ? Color(0xFFD22A2A) : Colors.black;
+          textColor = Color(0xFFD22A2A);
+          break;
+        case 'OFFLINE':
+          textColor = Colors.black;
           break;
         default:
           textColor = Colors.black;
@@ -222,17 +326,153 @@ class _VehicleFragmentState extends State<VehicleFragment> {
       }
     }
 
-    // Get the current date and time
-    DateTime now = DateTime.now();
+    // Widget list for color circles and total amounts
+    List<Widget> colorWidgets = [];
+    int totalQuantity = 0;
 
-    // Format the current date and time
-    String formattedDateTime = DateFormat('dd-MM-yyyy, hh:mm:ss a').format(now);
+    if (hasShipments) {
+      // Calculate total sum of amounts
+      totalQuantity = amountParts.map((amount) => int.tryParse(amount) ?? 0).fold(0, (prev, amount) => prev + amount);
+
+      // Map to accumulate total amounts for each color category
+      Map<String, int> colorAmountMap = {};
+      for (int i = 0; i < colorParts!.length; i++) {
+        String color = colorParts[i];
+        if (color.isNotEmpty) {
+          int amount = int.tryParse(amountParts[i]) ?? 0;
+          colorAmountMap[color] = (colorAmountMap[color] ?? 0) + amount;
+        }
+      }
+
+      colorAmountMap.forEach((color, totalAmount) {
+        colorWidgets.add(
+          Row(
+            children: [
+              SizedBox(
+                width: 8,
+                height: 8,
+                child: CircleAvatar(
+                  backgroundColor: Color(int.parse("0xff" + color.substring(1))),
+                ),
+              ),
+              SizedBox(width: 4), // Add horizontal spacing
+              Text(totalAmount.toString()),
+            ],
+          ),
+        );
+        colorWidgets.add(SizedBox(width: 8));
+      });
+    }
+
+    // Add vertical padding between rows in the details section
+    List<Widget> detailsRows = [];
+    if (hasShipments) {
+      detailsRows.add(
+        Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text(
+            'Delivering Details:',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+
+      // Map color values to their corresponding names
+      Map<String, String> colorNames = {
+        '#ff0000': 'RED',
+        '#0000ff': 'BLUE',
+        '#000000': 'BLACK',
+        '#808080': 'GREY',
+        '#ffff00': 'YELLOW',
+        // Add more color mappings as needed
+      };
+
+// Iterate over each shipment detail
+      for (int i = 0; i < descriptionParts.length; i++) {
+        String colorName = colorNames[colorParts?[i]] ??
+            'NA'; // Get color name from the map, defaulting to 'NA' if not found
+
+        detailsRows.add(
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    descriptionParts[i],
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        amountParts.length > i ? amountParts[i] : '',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (colorParts != null &&
+                          colorParts.length > i &&
+                          colorParts[i].isNotEmpty)
+                        Row(
+                          children: [
+                            Text(
+                              colorName,
+                              style: TextStyle(
+                                  fontSize: 10), // Adjust font size here
+                            ), // Display color name before CircleAvatar
+                            SizedBox(width: 8),
+                            SizedBox(
+                              width: 8,
+                              height: 8,
+                              child: CircleAvatar(
+                                backgroundColor: Color(int.parse(
+                                    "0xff" + colorParts[i].substring(1))),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    } else {
+      // Display a message indicating no shipment details
+      detailsRows.add(
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 4),
+          child: Text(
+            'No Shipments Available',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+            textAlign: TextAlign.center, // Align the text to the center
+          ),
+        ),
+      );
+    }
+
+
 
     return GestureDetector(
       onTap: () {
-        null;
+        // Navigate to ShipmentDetailsFragment when card is tapped
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ShipmentDetailsFragment(shipment)),
+        );
       },
       child: Card(
+        color: Color(0xffcdeffd),
         margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         child: Stack(
           children: [
@@ -242,7 +482,7 @@ class _VehicleFragmentState extends State<VehicleFragment> {
               child: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: textColor,
+                  color: textColor, // Use the textColor variable here
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(4),
                 ),
@@ -255,13 +495,11 @@ class _VehicleFragmentState extends State<VehicleFragment> {
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '${shipment['plateNo']}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    Text('${shipment['plate_no']}',
+                      style: TextStyle(fontWeight: FontWeight.bold),),
                     FittedBox(
                       child: Text(
-                        formattedDateTime,
+                        createdAt ?? '', // Use createdAt if it's not null, otherwise use an empty string
                         style: TextStyle(
                           color: Colors.grey,
                           fontSize: 12,
@@ -278,70 +516,115 @@ class _VehicleFragmentState extends State<VehicleFragment> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Speed: ${shipment['speed']} km/h'),
-                        shipment['battery'] != null ? Text('Battery: ${shipment['battery']} V') :  Text('Offline'),
+                        Text(
+                          '${shipment['vehicleStatus']}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
                       ],
                     ),
-                    SizedBox(height: 10,),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if(shipment['status'] == "行驶")Text(
-                          'Moving',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        if(shipment['status'] == "静止" && shipment['engine'] == "ON")Text(
-                          'Idle',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        if(shipment['status'] == "静止" && shipment['engine'] == "OFF")Text(
-                          'Stopped',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        if(shipment['status'] == "离线")Text(
-                          'Offline',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        // Text(
-                        //   '${shipment['battery']}',
-                        //   ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 10),
+                    Text('Battery: ${shipment['battery']} V'),
+                    SizedBox(height: 20),
+                    // Add some space between the status and city
+                    // RichText(
+                    //   text: TextSpan(
+                    //     text: 'Location From: ',
+                    //     style: TextStyle(
+                    //       fontWeight: FontWeight.normal,
+                    //       color: Colors.black, // Optional: adjust the color as needed
+                    //     ),
+                    //     children: <TextSpan>[
+                    //       TextSpan(
+                    //         text: shipment['deliver_from'],
+                    //         style: TextStyle(
+                    //           fontWeight: FontWeight.bold,
+                    //           color: Colors.black, // Optional: adjust the color as needed
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // SizedBox(height: 8),
                     RichText(
                       text: TextSpan(
-                        text: 'Location: ',
+                        text: 'Current Location: ',
                         style: TextStyle(
                           fontWeight: FontWeight.normal,
-                          color: Colors.black,
+                          color: Colors.black, // Optional: adjust the color as needed
                         ),
                         children: <TextSpan>[
                           TextSpan(
                             text: city,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: Colors.black, // Optional: adjust the color as needed
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Container(
-                      height: 4,
-                      color: Colors.grey[100],
-                    ),
-                    SizedBox(height: 24),
+                    SizedBox(height: 8), // Add some space between the status and city
+                    // RichText(
+                    //   text: TextSpan(
+                    //     text: 'Deliver To: ',
+                    //     style: TextStyle(
+                    //       fontWeight: FontWeight.normal,
+                    //       color: Colors.black, // Optional: adjust the color as needed
+                    //     ),
+                    //     children: <TextSpan>[
+                    //       TextSpan(
+                    //         text: shipment['delivery_location'],
+                    //         style: TextStyle(
+                    //           fontWeight: FontWeight.bold,
+                    //           color: Colors.black, // Optional: adjust the color as needed
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // Divider(
+                    //   thickness: 1,
+                    //   color: Colors.blue,
+                    // ),
+                    // SizedBox(height: 8),
+                    // ...detailsRows, // Use detailsRows here
+                    // SizedBox(height: 24),
+                    // SingleChildScrollView(
+                    //   scrollDirection: Axis.horizontal,
+                    //   child: Row(
+                    //     children: [
+                    //       for (int i = 0; i < colorWidgets.length; i++)
+                    //         Row(
+                    //           children: [
+                    //             colorWidgets[i],
+                    //             if (i < colorWidgets.length - 1) SizedBox(width: 8), // Add spacing between colorWidgets
+                    //           ],
+                    //         ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // SizedBox(height: 12),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.end,
+                    //   children: [
+                    //     Container(
+                    //       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    //       decoration: BoxDecoration(
+                    //         color: Colors.lightBlueAccent,
+                    //         borderRadius: BorderRadius.circular(4),
+                    //       ),
+                    //       child: Text(
+                    //         'Total: $totalQuantity',
+                    //         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+
+
                   ],
                 ),
               ),
@@ -355,39 +638,15 @@ class _VehicleFragmentState extends State<VehicleFragment> {
 
 
 
-
-
-  Widget buildCategoryItem(String category, Color color) {
-    String status = ' ';
-    String engineStatus;
-    int categoryCount = 0;
-
-    // Map the category to status and engine status
-    switch (category) {
-      case 'ALL':
-        status = 'ALL';
-        engineStatus = ''; // Empty string means it's not filtering based on engine status
-        categoryCount = shipmentData.length;
-        break;
-      case 'MOVING':
-        status = '行驶';
-        engineStatus = 'ON'; // Empty string means it's not filtering based on engine status
-        categoryCount = shipmentData.where((shipment) => shipment['status'] == status && shipment['engine'] == engineStatus).length;
-        break;
-      case 'IDLE':
-        status = '静止';
-        engineStatus = 'ON';
-        categoryCount = shipmentData.where((shipment) => shipment['status'] == status && shipment['engine'] == engineStatus).length;
-        break;
-      case 'STOPPED':
-        engineStatus = 'OFF';
-        categoryCount = shipmentData.where((shipment) => (shipment['status'] == '静止' || shipment['status'] == '离线') && shipment['engine'] == engineStatus).length;
-        break;
-      default:
-        status = 'ALL';
-        engineStatus = '';
+  Widget buildCategoryItem(String category, Color color, List<dynamic> data) {
+    // Calculate the total number of unique plates for the current category
+    Set<String> uniquePlateNumbers = Set();
+    for (var shipment in data) {
+      String plateNo = shipment['plate_no'];
+      if (category == 'ALL' || shipment['vehicleStatus'].toUpperCase() == category) {
+        uniquePlateNumbers.add(plateNo);
+      }
     }
-
 
     return GestureDetector(
       onTap: () {
@@ -404,15 +663,7 @@ class _VehicleFragmentState extends State<VehicleFragment> {
         child: Row(
           children: [
             Text(
-              '$category - ',
-              style: TextStyle(
-                color: selectedCategory == category ? Colors.white : Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-            Text(
-              categoryCount.toString(),
+              '$category - ${uniquePlateNumbers.length}',
               style: TextStyle(
                 color: selectedCategory == category ? Colors.white : Colors.black,
                 fontWeight: FontWeight.bold,
@@ -425,4 +676,3 @@ class _VehicleFragmentState extends State<VehicleFragment> {
     );
   }
 }
-
