@@ -90,15 +90,18 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> init() async {
-    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {
+      isLoading = true;
+    });
 
+    final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var obtainedID = sharedPreferences.getString('id');
 
-    final url = Uri.parse( mBaseUrl +'userDetail/' + obtainedID!);
+    final url = Uri.parse(mBaseUrl + 'userDetail/' + obtainedID!);
 
     final response = await http.get(
       url,
-      headers: headers, // Encode the request body to JSON
+      headers: headers,
     );
 
     if (response.statusCode == 200) {
@@ -112,64 +115,70 @@ class EditProfileScreenState extends State<EditProfileScreen> {
         userPhone = responseData['user_phone'];
         userAddress = responseData['user_address'];
         userCity = responseData['user_city'];
-        userPostcode = responseData['user_postcode'].toString();
+        userPostcode = responseData['user_postcode']?.toString();
         userState = responseData['user_state'];
 
-        emailController.text = userEmail!;
-        usernameController.text = userSurname!;
-        nameController.text = userName!;
-        contactNumberController.text = userPhone!;
-        addressController.text = userAddress!;
-        cityController.text = userCity!;
-        postcodeController.text = userPostcode!;
+        emailController.text = userEmail ?? '';
+        usernameController.text = userSurname ?? '';
+        nameController.text = userName ?? '';
+        contactNumberController.text = userPhone ?? '';
+        addressController.text = userAddress ?? '';
+        cityController.text = userCity ?? '';
+        postcodeController.text = userPostcode ?? '';
 
-        if(imageinDB == null){
-          imageURL = DOMAIN_URL + "/images/profile.png";
-        }else {
-          imageURL = DOMAIN_URL + "/images/" + imageinDB!;
+        if (imageinDB == null) {
+          imageURL = mediaUrl + "images/profile.png";
+        } else {
+          imageURL = mediaUrl + "customers/" + imageinDB!;
         }
+
         // Loop through the malaysiaStates list to find a match
         for (int i = 0; i < malaysiaStates.length; i++) {
           if (malaysiaStates[i] == userState) {
             // A match is found, store the index
             matchingIndex = i;
-
             selectedState = malaysiaStates[matchingIndex!];
-
-            setState(() {
-              isLoading = false;
-            });
-
             break; // Exit the loop once a match is found
           }
         }
+
+        setState(() {
+          isLoading = false;
+        });
       } else {
         // Handle HTTP request error
         Fluttertoast.showToast(
           msg: "There is an error occurred.",
-          toastLength: Toast.LENGTH_SHORT, // Duration for which the toast message will be displayed
-          gravity: ToastGravity.BOTTOM, // Position of the toast message
-          timeInSecForIosWeb: 1, // Only for iOS and web
-          backgroundColor: Colors.black.withOpacity(0.7), // Background color of the toast
-          textColor: Colors.white, // Text color of the toast
-          fontSize: 16.0, // Font size of the text
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.black.withOpacity(0.7),
+          textColor: Colors.white,
+          fontSize: 16.0,
         );
+        setState(() {
+          isLoading = false; // Update isLoading state on error
+        });
       }
     } else {
       // Handle HTTP request error
       Fluttertoast.showToast(
         msg: "Something Went Wrong",
-        toastLength: Toast.LENGTH_SHORT, // Duration for which the toast message will be displayed
-        gravity: ToastGravity.BOTTOM, // Position of the toast message
-        timeInSecForIosWeb: 1, // Only for iOS and web
-        backgroundColor: Colors.black.withOpacity(0.7), // Background color of the toast
-        textColor: Colors.white, // Text color of the toast
-        fontSize: 16.0, // Font size of the text
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.black.withOpacity(0.7),
+        textColor: Colors.white,
+        fontSize: 16.0,
       );
+      setState(() {
+        isLoading = false; // Update isLoading state on error
+      });
     }
   }
 
-  Future<void> updateUser(File? image,String phoneNumber, String name, String surname, String address, String email, String city, String state, String postcode) async {
+
+  Future<void> updateUser(File? image, String phoneNumber, String name, String surname, String? address, String? email, String? city, String? state, String? postcode) async {
     final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var obtainedID = sharedPreferences.getString('id');
 
@@ -190,11 +199,11 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     request.fields['phone_number'] = phoneNumber;
     request.fields['name'] = name;
     request.fields['surname'] = surname;
-    request.fields['address'] = address;
-    request.fields['email'] = email;
-    request.fields['city'] = city;
-    request.fields['state'] = state;
-    request.fields['postcode'] = postcode;
+    request.fields['address'] = address ?? ''; // Handle null value for address
+    request.fields['email'] = email ?? ''; // Handle null value for email
+    request.fields['city'] = city ?? ''; // Handle null value for city
+    request.fields['state'] = state ?? ''; // Handle null value for state
+    request.fields['postcode'] = postcode ?? ''; // Handle null value for postcode
 
     try {
       final response = await request.send();
@@ -203,16 +212,11 @@ class EditProfileScreenState extends State<EditProfileScreen> {
         Fluttertoast.showToast(
           msg: "Profile Updated!",
           toastLength: Toast.LENGTH_SHORT,
-          // Duration for which the toast message will be displayed
           gravity: ToastGravity.BOTTOM,
-          // Position of the toast message
           timeInSecForIosWeb: 1,
-          // Only for iOS and web
           backgroundColor: Colors.black.withOpacity(0.7),
-          // Background color of the toast
           textColor: Colors.white,
-          // Text color of the toast
-          fontSize: 16.0, // Font size of the text
+          fontSize: 16.0,
         );
 
         Navigator.pop(context);
@@ -220,39 +224,29 @@ class EditProfileScreenState extends State<EditProfileScreen> {
       } else {
         print("Response Status Code: ${response.statusCode}");
         // Handle registration error
-        if(response.statusCode == 413) {
+        if (response.statusCode == 413) {
           Fluttertoast.showToast(
             msg: "The image file exceeds the limit",
             toastLength: Toast.LENGTH_SHORT,
-            // Duration for which the toast message will be displayed
             gravity: ToastGravity.BOTTOM,
-            // Position of the toast message
             timeInSecForIosWeb: 1,
-            // Only for iOS and web
             backgroundColor: Colors.black.withOpacity(0.7),
-            // Background color of the toast
             textColor: Colors.white,
-            // Text color of the toast
-            fontSize: 16.0, // Font size of the text
+            fontSize: 16.0,
           );
-        }else{
+        } else {
           Fluttertoast.showToast(
             msg: "Something Went Wrong!",
             toastLength: Toast.LENGTH_SHORT,
-            // Duration for which the toast message will be displayed
             gravity: ToastGravity.BOTTOM,
-            // Position of the toast message
             timeInSecForIosWeb: 1,
-            // Only for iOS and web
             backgroundColor: Colors.black.withOpacity(0.7),
-            // Background color of the toast
             textColor: Colors.white,
-            // Text color of the toast
-            fontSize: 16.0, // Font size of the text
+            fontSize: 16.0,
           );
         }
       }
-    }catch (e) {
+    } catch (e) {
       // Handle exceptions
       print("Error: $e");
       Fluttertoast.showToast(
@@ -513,14 +507,15 @@ class EditProfileScreenState extends State<EditProfileScreen> {
           final name = nameController.text;
           final surname = usernameController.text;
           final address = addressController.text;
-          final email = emailController.text;
+          final email = emailController.text.isNotEmpty ? emailController.text : ''; // Provide default value if email is null
           final city = cityController.text;
-          final state = selectedState!;
+          final state = selectedState;
           final postcode = postcodeController.text;
 
-          updateUser(imageProfile != null ? File(imageProfile!.path) : null,phoneNumber, name, surname, address, email, city, state, postcode);
-
-
+          updateUser(
+            imageProfile != null ? File(imageProfile!.path) : null,
+            phoneNumber, name, surname, address, email, city, state, postcode,
+          );
         }),
       ),
     );

@@ -87,9 +87,9 @@ class AccountFragmentState extends State<AccountFragment> {
           userName = responseData['user_name'];
 
           if(imageDB == null){
-            userImageURL = DOMAIN_URL + "/images/profile.png";
+            userImageURL = mediaUrl + "images/profile.png";
           }else {
-            userImageURL = DOMAIN_URL + "/customers/" + imageDB!;
+            userImageURL = mediaUrl + "customers/" + imageDB!;
           }
 
 
